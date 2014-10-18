@@ -14,7 +14,8 @@ we will not do any processing up front,
 and will defer any summerization until 
 we analyze the data.and summarize it by day,
 simply ignoring any NA values.
-```{r}
+
+```r
 data <- read.csv(unz('activity.zip', 'activity.csv'))
 ```
 ## What is mean total number of steps taken per day?
@@ -23,7 +24,8 @@ well start by summarizing the data by totaling
 the number of steps in each day, 
 initially ignoring any missing values.
 
-```{r}
+
+```r
 library(plyr)
 daily <- ddply(data, c('date'), summarize,
                total=sum(steps, na.rm=TRUE))
@@ -34,19 +36,22 @@ min_steps = min(daily$total)
 ```
 
 If we look at the summary data, 
-we see that the mean number of steps per day is `r mean_steps`
-and the median is `r median_steps`.
+we see that the mean number of steps per day is 9354.2295082
+and the median is 10395.
 Both are approximately 10 thousand.
 However, if we look at a histogram, we see steps per day
-can vary widely, from `r min_steps` to `r max_steps`.
+can vary widely, from 0 to 21194.
 
-```{r}
+
+```r
 library(ggplot2)
 ggplot(daily, aes(x=total)) +
   geom_histogram(binwidth=500) +
   labs(x='total steps per day') +
   labs(y='count of days') 
-```  
+```
+
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
 
 ## What is the average daily activity pattern?
 To examine the daily pattern, we can aggregate the data 
@@ -54,7 +59,8 @@ by time slice in the data,
 computing the average number of steps taken for that interval.
 Again we'll initially just ignore missing values.
 
-```{r}
+
+```r
 diurnal <- ddply(data, c('interval'), summarize, 
                  mean_steps=mean(steps, na.rm=TRUE))
 peak_steps <- max(diurnal$mean_steps)
@@ -65,24 +71,28 @@ Now we can examine the daily pattern,
 comparing the average number of steps in each
 interval, averaged over the two months
 
-```{r}
+
+```r
 ggplot(diurnal, aes(x=interval, y=mean_steps)) +
   geom_line() +
   labs(x="Interval") +
   labs(y="Number of Steps")
 ```
 
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
+
 And we notice that the largest average number of steps
-per 5 minute period is `r peak_steps` in interval `r peak_interval`.
+per 5 minute period is 206.1698113 in interval 835.
 
 ## Imputing missing values
 
-```{r}
+
+```r
 na_rows <- length(which(is.na(data$steps)))
 total_rows <- length(data$steps)
 ```
 One potential flaw in the data set is missing values.
-Of the `r total_rows` rows, `r na_rows` have missing step values.
+Of the 17568 rows, 2304 have missing step values.
 There are any number of potential strategies
 for imputing the missing data.
 Here, we'll take a simple strategy:
@@ -93,7 +103,8 @@ Here, we'll take a simple strategy:
    so it's basically fair to substitute the mean
    value for that interval.
 
-```{r}
+
+```r
 data$mean <- rep(diurnal$mean_steps,times=61)
 data$steps[is.na(data$steps)] <- data$mean[is.na(data$steps)]
 ```
@@ -104,7 +115,8 @@ summing over the days,
 computing the means and medians
 and examining the distribution of steps per day
 
-```{r}
+
+```r
 daily2 <- ddply(data, c('date'), summarize,
                total=sum(steps, na.rm=TRUE))
 mean_steps2 = mean(daily2$total)
@@ -112,18 +124,21 @@ median_steps2 = median(daily2$total)
 max_steps2 = max(daily2$total)
 min_steps2 = min(daily2$total)
 ```
-With the imputed data, we now have a mean of `r mean_steps2`
-compared to the original `r mean_steps`
-and a median of `r median_steps2` compared to `r median_steps`.
+With the imputed data, we now have a mean of 1.0766189 &times; 10<sup>4</sup>
+compared to the original 9354.2295082
+and a median of 1.0766189 &times; 10<sup>4</sup> compared to 10395.
 
 Looking at the distribution we see
 
-```{r}
+
+```r
 ggplot(daily2, aes(x=total)) +
   geom_histogram(binwidth=500) +
   labs(x='total steps per day') +
   labs(y='count of days') 
 ```
+
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-1.png) 
 
 So, we see that we have raised the mean and median slightly,
 while ensuring that the median approaches the mean.
@@ -143,7 +158,8 @@ Then we can average steps per 5 minutes over each time interval
 independently on each subset 
 to compare the weekday and weekend walking patterns.
 
-```{r}
+
+```r
 weekend <- c('Sat', 'Sun')
 data$weekend <- ifelse(weekdays(as.Date(data$date), 
                                 abbreviate=TRUE) %in% weekend,
@@ -166,6 +182,8 @@ library(grid)
 library(gridExtra)
 grid.arrange(p1, p2, ncol=1)
 ```
+
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10-1.png) 
 
 Examining the two graphs,
 we see that the weekday and weekend cycles are quite different.
